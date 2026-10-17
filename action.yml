@@ -1,0 +1,37 @@
+name: "AI Red-Team Action"
+description: >-
+  2-minute prompt-injection battery for your CI. Runs a deterministic set of
+  known injection probes against your system prompt and posts a Markdown
+  summary to the job. Tests prompt robustness against known patterns — not a
+  certification, not a live-LLM pentest.
+branding:
+  icon: "shield"
+  color: "red"
+
+inputs:
+  system-prompt:
+    description: >-
+      The system prompt text to test, or a path to a file containing it
+      (relative to the checked-out repo).
+    required: true
+  fail-on:
+    description: >-
+      Fail the step when any LEAKED finding has severity >= this threshold.
+      One of: critical, high, medium, low.
+    required: false
+    default: "high"
+  output-format:
+    description: "Report format. Only 'markdown' is supported."
+    required: false
+    default: "markdown"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run prompt-injection battery
+      shell: bash
+      env:
+        REDTEAM_SYSTEM_PROMPT: ${{ inputs.system-prompt }}
+        REDTEAM_FAIL_ON: ${{ inputs.fail-on }}
+        REDTEAM_OUTPUT_FORMAT: ${{ inputs.output-format }}
+      run: python3 "$GITHUB_ACTION_PATH/battery/run_battery.py"
